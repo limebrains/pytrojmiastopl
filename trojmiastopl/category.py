@@ -2,37 +2,38 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import sys
 
 from bs4 import BeautifulSoup
 
-from trojmiastopl import BASE_URL, WHITELISTED_DOMAINS
-from trojmiastopl.utils import *
-
-if sys.version_info < (3, 3):
-    from urlparse import urlparse
-else:
-    from urllib.parse import urlparse
+from trojmiastopl.utils import flatten, get_content_for_url, get_url
 
 log = logging.getLogger(__file__)
 logging.basicConfig(level=logging.DEBUG)
 
 
 def get_page_count(markup):
-    """ Reads page number from trojmiasto.pl search page
+    """ Reads total page number from trojmiasto.pl search page
 
     :param markup: trojmiasto.pl search page markup
+    :type markup: str
     :return: Total page number
     :rtype: int
+
+    :except: If no page number was found
     """
     html_parser = BeautifulSoup(markup, "html.parser")
-    return int(html_parser.find(title="ostatnia strona").text)
+    try:
+        return int(html_parser.find(title="ostatnia strona").text)
+    except AttributeError as e:
+        log.warning(e)
+        return 1
 
 
 def parse_offer_url(markup):
     """ Searches for offer links in markup
 
     :param markup: Search page markup
+    :type markup: str
     :return: Url with offer
     :rtype: str
     """
@@ -45,6 +46,7 @@ def parse_available_offers(markup):
     """ Collects all offer links on search page markup
 
     :param markup: Search page markup
+    :type markup: str
     :return: Links to offer on given search page
     :rtype: list
     """
@@ -54,21 +56,44 @@ def parse_available_offers(markup):
     return parsed_offers
 
 
-def get_category(category, **filters):
-    filters = {
+def get_category(category, region, **filters):
+    """ Parses available offer urls from given category from every page
 
+    :param category: Search category
+    :param region: Search region
+    :param filters: Dictionary with additional filters. Following example dictionary contains every possible filter
+    with examples of it's values.
+
+    :Example:
+
+    input_dict = {
+        "offer_type": "Mieszkanie", # offer type. See :meth:`utils.decode_type' for reference
+        "cena[]": (300, None), # price (from, to). None if you don't want to pass one of arguments
+        "cena_za_m2[]": (5, 100), # price/surface
+        "powierzchnia[]": (23, 300), # surface
+        "l_pokoi[]": (2, 5), # desired number of rooms
+        "pietro[]": (-1, 6), # desired floor, enum: from 1 to 49 and -1 (ground floor)
+        "l_pieter[]": (1, 10), # desired total number of floors in building
+        "rok_budowy[]": (2003, 2017), # date of built
+        "data_wprow": "1d" # date of adding offer. Available: 1d - today, 3d - 3 days ago, 1w - one week ago,
+                           # 3w - 3 weeks ago
     }
-    category = "nieruchomosci-mam-do-wynajecia/wi,100,s,Gdańsk.html"
-    url = get_url(category, **filters)
+
+    :type category: str
+    :type region: str
+    :type filters: dict
+    :return: List of all offers for given parameters
+    :rtype: list
+    """
+    url = get_url(category, region, **filters)
     parsed_urls, page = [], 0
     response = get_content_for_url(url)
     page_max = get_page_count(response.content)
-    while page < 2 and page < page_max:
-        url = get_url(category, page, **filters)
+    while page < page_max:
+        if page != 0:
+            url = get_url(category, region, page, **filters)
         log.debug(url)
         response = get_content_for_url(url)
-        if response.status_code > 300:
-            break
         log.info("Loaded page {0} of offers".format(page + 1))
         offers = parse_available_offers(response.content)
         if offers is None:
