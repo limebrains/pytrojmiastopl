@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from re import findall
 
 from bs4 import BeautifulSoup
 
@@ -19,12 +20,12 @@ def get_page_count(markup):
     :return: Total page number
     :rtype: int
 
-    :except: If no page number was found
+    :except: If no page number was found - there is just one page.
     """
     html_parser = BeautifulSoup(markup, "html.parser")
     try:
-        return int(html_parser.find(title="ostatnia strona").text)
-    except AttributeError as e:
+        return int(max(findall(r'\d+', html_parser.find(class_="navi-pages").text)))
+    except ValueError as e:
         log.warning(e)
         return 1
 
@@ -85,13 +86,14 @@ def get_category(category, region, **filters):
     :return: List of all offers for given parameters
     :rtype: list
     """
-    url = get_url(category, region, **filters)
+    current_url = get_url(category, region, **filters)
+    url = current_url
     parsed_urls, page = [], 0
     response = get_content_for_url(url)
     page_max = get_page_count(response.content)
     while page < page_max:
         if page != 0:
-            url = get_url(category, region, page, **filters)
+            url = current_url + "?strona={0}".format(page)
         log.debug(url)
         response = get_content_for_url(url)
         log.info("Loaded page {0} of offers".format(page + 1))
@@ -104,4 +106,5 @@ def get_category(category, region, **filters):
         page += 1
     parsed_urls = list(flatten(parsed_urls))
     log.info("Loaded {0} offers".format(str(len(parsed_urls))))
+
     return parsed_urls

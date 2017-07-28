@@ -25,7 +25,7 @@ def get_title(offer_markup):
     :rtype: str
     """
     html_parser = BeautifulSoup(offer_markup, "html.parser")
-    return html_parser.find(id="ogl-title").text.replace("\n", "").replace("  ", "").replace("\xa0", " ")
+    return html_parser.find(id="ogl-title").text.replace("\n", "").replace("  ", "").replace(u'\xa0', u' ')
 
 
 def get_img_url(offer_markup):
@@ -94,7 +94,8 @@ def parse_description(description_markup):
     """
     html_parser = BeautifulSoup(description_markup, "html.parser").text
     # \xa0 means no-break space symbol
-    return html_parser.split("$(function")[0].replace("  ", "").replace("\n", " ").replace("\r", "").replace("\xa0", "")
+    return html_parser.split("$(function")[0].replace("  ", "").replace("\n", " ").replace("\r", "").replace(u'\xa0',
+                                                                                                             u' ')
 
 
 def get_furnished(offer_markup):
@@ -133,7 +134,7 @@ def parse_flat_data(offer_markup):
             correct = current.text
             if "parter" in correct:
                 correct = "0"
-            flat_data[element] = re.findall(r'\d+', correct)[0]
+            flat_data[element] = int(re.findall(r'\d+', correct)[0])
     return flat_data
 
 

@@ -3,15 +3,13 @@
 
 import logging
 
-from bs4 import BeautifulSoup
-
 import requests
+from bs4 import BeautifulSoup
 from scrapper_helpers.utils import caching
 
 from trojmiastopl import BASE_URL
 
 log = logging.getLogger(__file__)
-logging.basicConfig(level=logging.DEBUG)
 
 SEARCH_URL = "https://ogloszenia.trojmiasto.pl/szukaj/"
 
@@ -72,16 +70,14 @@ def get_url_for_filters(payload):
     return url
 
 
-def get_url(category, region=None, page=None, **filters):
+def get_url(category, region=None, **filters):
     """ Creates url for given parameters
 
     :param category: Search category
     :param region: Search region
-    :param page: Page number
     :param filters: Dictionary with additional filters. See :meth:'trojmiastopl.get_category' for reference
     :type category: str
     :type region: str
-    :type page: int
     :type filters: dict
     :return: Url for given parameters
     :rtype: str
@@ -103,7 +99,7 @@ def get_url(category, region=None, page=None, **filters):
                 continue
             elif "offer_type" == k:
                 v = decode_type(v)
-                k = "id_kat"
+                k = "wi"
             elif "data_wprow" == k:
                 available = ["1d", "3d", "1w", "3w"]
                 if v not in available:
@@ -112,8 +108,6 @@ def get_url(category, region=None, page=None, **filters):
         url = get_url_for_filters(payload)
     elif region is not None:
         url += "s,{0}.html".format(region)
-    if page is not None:
-        url += "?strona={0}".format(page)
     return url
 
 
