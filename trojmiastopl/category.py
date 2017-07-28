@@ -77,7 +77,7 @@ def get_category(category, region, **filters):
         "l_pieter[]": (1, 10), # desired total number of floors in building
         "rok_budowy[]": (2003, 2017), # date of built
         "data_wprow": "1d" # date of adding offer. Available: 1d - today, 3d - 3 days ago, 1w - one week ago,
-                           # 3w - 3 weeks ago
+         #                   3w - 3 weeks ago
     }
 
     :type category: str
