@@ -1,4 +1,4 @@
-# pyolx
+# pytrojmiastopl
 Python scrapper for trojmiasto.pl
 
 [![Coverage Status](https://coveralls.io/repos/github/aklein13/pytrojmiastopl/badge.svg?branch=master)](https://coveralls.io/github/aklein13/pytrojmiastopl?branch=master)
