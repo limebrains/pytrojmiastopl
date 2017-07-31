@@ -1,0 +1,6 @@
+mock
+requests
+beautifulsoup4
+https://github.com/aklein13/scrapper-helpers/archive/master.zip
+pytest
+pytest-cov

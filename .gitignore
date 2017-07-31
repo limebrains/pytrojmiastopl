@@ -99,3 +99,11 @@ ENV/
 
 # mypy
 .mypy_cache/
+.idea/
+old_files/
+docs/_static/
+docs/_templates/
+docs/make.bat
+test.py/bin/
+test.py/include/
+test.py/pip-selfcheck.json
