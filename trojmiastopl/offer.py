@@ -147,7 +147,7 @@ def parse_offer(markup, url):
     :type url: str
     :return: Dictionary with all offer details
     :rtype: dict
-    
+
     :except: If there is no offer title anymore - offer got deleted.
     """
     html_parser = BeautifulSoup(markup, "html.parser")
