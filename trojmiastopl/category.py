@@ -22,7 +22,32 @@ def get_page_count(markup):
 
     :except: If no page number was found - there is just one page.
     """
+
     html_parser = BeautifulSoup(markup, "html.parser")
+    try:
+        return int(max(findall(r'\d+', html_parser.find(class_="navi-pages").text)))
+    except ValueError as e:
+        log.warning(e)
+        return 1
+
+
+def get_page_count_for_filters(category, region, **filters):
+    """ Reads total page number for given search filters
+
+    :param category: Search category
+    :param region: Search region
+    :param filters: See :meth category.get_category for reference
+    :type category: str
+    :type region: str
+    :type filters: dict
+    :return: Total page number
+    :rtype: int
+
+    :except: If no page number was found - there is just one page.
+    """
+    url = get_url(category, region, **filters)
+    response = get_content_for_url(url)
+    html_parser = BeautifulSoup(response.content, "html.parser")
     try:
         return int(max(findall(r'\d+', html_parser.find(class_="navi-pages").text)))
     except ValueError as e:
@@ -106,5 +131,28 @@ def get_category(category, region, **filters):
         page += 1
     parsed_urls = list(flatten(parsed_urls))
     log.info("Loaded {0} offers".format(str(len(parsed_urls))))
-
     return parsed_urls
+
+
+def get_offers_for_page(category, region, page, **filters):
+    """ Parses offers for one specific page of given category with filters.
+
+    :param category: Search category
+    :param region: Search region
+    :param page: Page number
+    :param filters: See :meth category.get_category for reference
+    :type category: str
+    :type region: str
+    :type page: int
+    :type filters: dict
+    :return: List of all offers for given page and parameters
+    :rtype: list
+    """
+    url = get_url(category, region, **filters) + "?strona={0}".format(page)
+    response = get_content_for_url(url)
+    if response.status_code > 300:
+        return
+    log.info("Loaded page {0} of offers".format(page))
+    offers = parse_available_offers(response.content)
+    log.info("Loaded {0} offers".format(str(len(offers))))
+    return offers

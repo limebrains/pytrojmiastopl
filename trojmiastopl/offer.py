@@ -190,6 +190,8 @@ def get_descriptions(parsed_urls):
     """
     descriptions = []
     for url in parsed_urls:
+        if url is None:
+            continue
         response = get_content_for_url(url)
         log.debug(url)
         descriptions.append(parse_offer(response.content, url))
