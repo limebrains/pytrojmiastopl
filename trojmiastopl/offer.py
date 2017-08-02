@@ -147,10 +147,16 @@ def parse_offer(markup, url):
     :type url: str
     :return: Dictionary with all offer details
     :rtype: dict
+
+    :except: If there is no offer title anymore - offer got deleted.
     """
     html_parser = BeautifulSoup(markup, "html.parser")
     offer_content = str(html_parser.find(class_="title-wrap"))
-    title = get_title(offer_content)
+    try:
+        title = get_title(offer_content)
+    except AttributeError as e:
+        log.warning("Offer {0} got deleted. Error: {1}".format(url, e))
+        return
     images = get_img_url(str(html_parser.find(id="gallery")))
     description = parse_description(str(html_parser.find(class_="ogl-description")))
     offer_content = str(html_parser.find(id="sidebar"))
@@ -184,7 +190,11 @@ def get_descriptions(parsed_urls):
     """
     descriptions = []
     for url in parsed_urls:
+        if url is None:
+            continue
         response = get_content_for_url(url)
         log.debug(url)
-        descriptions.append(parse_offer(response.content, url))
+        current_offer = parse_offer(response.content, url)
+        if current_offer is not None:
+            descriptions.append(current_offer)
     return descriptions
