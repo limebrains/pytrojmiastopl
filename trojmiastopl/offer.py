@@ -156,7 +156,7 @@ def parse_offer(markup, url):
         title = get_title(offer_content)
     except AttributeError as e:
         log.warning("Offer {0} got deleted. Error: {1}".format(url, e))
-        pass
+        return
     images = get_img_url(str(html_parser.find(id="gallery")))
     description = parse_description(str(html_parser.find(class_="ogl-description")))
     offer_content = str(html_parser.find(id="sidebar"))
@@ -194,5 +194,7 @@ def get_descriptions(parsed_urls):
             continue
         response = get_content_for_url(url)
         log.debug(url)
-        descriptions.append(parse_offer(response.content, url))
+        current_offer = parse_offer(response.content, url)
+        if current_offer is not None:
+            descriptions.append(current_offer)
     return descriptions

@@ -15,7 +15,6 @@ if __name__ == '__main__':
         "cena[]": (2000, None)
     }
     parsed_urls = get_category("nieruchomosci-mam-do-wynajecia", "Gdańsk", **search_filters)[:2]
-    # parsed_urls = get_offers_for_page("nieruchomosci-mam-do-wynajecia", "Gdańsk", 3, **search_filters)[:2]
     descriptions = get_descriptions(parsed_urls)
     for element in descriptions:
         print()
