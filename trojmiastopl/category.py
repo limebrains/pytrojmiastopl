@@ -116,7 +116,6 @@ def get_category(category, region=None, **filters):
     parsed_urls, page = [], 0
     response = get_content_for_url(url)
     page_max = get_page_count(response.content)
-    print(page_max)
     while page < page_max:
         if page != 0:
             url = current_url + "?strona={0}".format(page)
