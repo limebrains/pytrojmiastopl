@@ -25,7 +25,7 @@ def get_page_count(markup):
 
     html_parser = BeautifulSoup(markup, "html.parser")
     try:
-        return int(max(findall(r'\d+', html_parser.find(class_="navi-pages").text)))
+        return max(map(int, findall(r'\d+', html_parser.find(class_="navi-pages").text)))
     except ValueError as e:
         log.warning(e)
         return 1
@@ -49,7 +49,7 @@ def get_page_count_for_filters(category, region, **filters):
     response = get_content_for_url(url)
     html_parser = BeautifulSoup(response.content, "html.parser")
     try:
-        return int(max(findall(r'\d+', html_parser.find(class_="navi-pages").text)))
+        return max(map(int, findall(r'\d+', html_parser.find(class_="navi-pages").text)))
     except ValueError as e:
         log.warning(e)
         return 1
@@ -82,7 +82,7 @@ def parse_available_offers(markup):
     return parsed_offers
 
 
-def get_category(category, region, **filters):
+def get_category(category, region=None, **filters):
     """ Parses available offer urls from given category from every page
 
     :param category: Search category
