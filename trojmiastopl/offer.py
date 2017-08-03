@@ -44,25 +44,6 @@ def get_img_url(offer_markup):
     return output
 
 
-def get_price(offer_markup):
-    """ Searches for price on offer page
-
-    Assumes price is in PLN
-
-    :param offer_markup: Class "title-wrap" from offer page markup
-    :type offer_markup: str
-    :return: Price
-    :rtype: int
-    """
-    html_parser = BeautifulSoup(offer_markup, "html.parser")
-    price = html_parser.find(class_="cena").text
-    output = ""
-    for char in price:
-        if char.isdigit():
-            output += char
-    return int(output)
-
-
 def get_surface(offer_markup):
     """ Searches for surface in offer markup
 
@@ -79,9 +60,33 @@ def get_surface(offer_markup):
 
 
 def get_apartment_type(offer_markup):
+    """ Searches for apartment type in offer markup
+
+    :param offer_markup: Class "sidebar" from offer page markup
+    :type offer_markup: str
+    :return: Apartment type
+    :rtype: str
+    """
     html_parser = BeautifulSoup(offer_markup, "html.parser")
-    type = html_parser.find(class_="rodzaj_nieruchomosci").contents
-    return type[3].text.replace('<div class="dd">', '').replace('</div>', '').replace('  ', '').replace("\n", "")
+    built_type = html_parser.find(class_="rodzaj_nieruchomosci").contents
+    return built_type[3].text.replace('<div class="dd">', '').replace('</div>', '').replace('  ', '').replace("\n", "")
+
+
+def get_available_from(offer_markup):
+    """ Searches for available from in offer markup
+
+    :param offer_markup: Class "sidebar" from offer page markup
+    :type offer_markup: str
+    :return: Available from
+    :rtype: str
+    """
+    html_parser = BeautifulSoup(offer_markup, "html.parser")
+    try:
+        available = html_parser.find(class_="dostepne_od").contents
+        return available[3].text.replace('<div class="dd">', '').replace('</div>', '').replace('  ', '').replace("\n",
+                                                                                                                 "")
+    except AttributeError:
+        return None
 
 
 def parse_description(description_markup):
@@ -123,18 +128,19 @@ def parse_flat_data(offer_markup):
 
     :param offer_markup: Class "sidebar" from offer page markup
     :type offer_markup: str
-    :return: Information about floor, number of rooms, date of built and total count of floors in building
+    :return: Information about price, deposit, floor, number of rooms, date of built and
+    total count of floors in building
     :rtype: dict
     """
     html_parser = BeautifulSoup(offer_markup, "html.parser")
-    flat_data = {"pietro": None, "l_pokoi": None, "rok_budowy": None, "l_pieter": None}
+    flat_data = {"pietro": None, "l_pokoi": None, "rok_budowy": None, "l_pieter": None, "cena": None, "kaucja": None}
     for element in list(flat_data.keys()):
         current = html_parser.find(class_=element)
         if current is not None:
             correct = current.text
             if "parter" in correct:
                 correct = "0"
-            flat_data[element] = int(re.findall(r'\d+', correct)[0])
+            flat_data[element] = int("".join(re.findall(r'\d+', correct)))
     return flat_data
 
 
@@ -160,20 +166,21 @@ def parse_offer(markup, url):
     images = get_img_url(str(html_parser.find(id="gallery")))
     description = parse_description(str(html_parser.find(class_="ogl-description")))
     offer_content = str(html_parser.find(id="sidebar"))
-    price = get_price(offer_content)
     surface = get_surface(offer_content)
-    flat_data = list(parse_flat_data(offer_content).values())
+    flat_data = parse_flat_data(offer_content)
     return {
         "title": title,
         "type": get_apartment_type(offer_content),
-        "price": price,
+        "price": flat_data["cena"],
+        "deposit": flat_data["kaucja"],
         "surface": surface,
-        "price/surface": round(price / surface),
-        "floor": flat_data[0],
-        "rooms": flat_data[1],
-        "built_date": flat_data[2],
+        "price/surface": round(flat_data["cena"] / surface),
+        "floor": flat_data["pietro"],
+        "floor_count": flat_data["l_pieter"],
+        "rooms": flat_data["l_pokoi"],
+        "built_date": flat_data["rok_budowy"],
+        "available_from": get_available_from(offer_content),
         "furniture": get_furnished(offer_content),
-        "floor_count": flat_data[3],
         "url": url,
         "description": description,
         "images": images
