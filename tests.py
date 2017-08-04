@@ -122,7 +122,7 @@ def test_parse_dates_and_id(sidebar_parser):
     test = trojmiastopl.offer.parse_dates_and_id(sidebar_parser)
     assert test["id"] == "60570207"
     assert test["added"] == "19 lipca 2017"
-    assert test["updated"] == "2 sierpnia 2017"
+    assert test["updated"] == "4 sierpnia 2017"
 
 
 def test_get_img_url(gallery_parser):
@@ -162,7 +162,7 @@ def test_get_descriptions(urls):
     ("nieruchomosci-mam-do-wynajecia", "Gdansk", {"data_wprow": "1d", "cdata_wprow": (300, None)}),
 ])
 def test_get_page_count_for_filters(category, region, filters):
-    assert trojmiastopl.category.get_page_count_for_filters(category, region, **filters) <= 2
+    assert trojmiastopl.category.get_page_count_for_filters(category, region, **filters) <= 3
 
 
 @pytest.mark.parametrize("category,region,filters", [
