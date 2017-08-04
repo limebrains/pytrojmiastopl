@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='pytrojmiastopl',
-    version='0.0.2',
+    version='0.0.1',
     description="pytrojmiastopl - python wrapper for trojmiasto.pl",
     author='LimeBrains',
     author_email='mail@limebrains.com',
