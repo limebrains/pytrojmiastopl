@@ -5,6 +5,7 @@ import logging
 import re
 
 from bs4 import BeautifulSoup
+from scrapper_helpers.utils import caching, key_sha1
 
 from trojmiastopl.utils import get_cookie_from, get_content_for_url, obfuscator_request
 
@@ -227,6 +228,7 @@ def parse_flat_data(offer_markup):
     return flat_data
 
 
+@caching(key_func=key_sha1)
 def parse_contact_details(contact_markup, cookie):
     """ Parses contact information
 

@@ -5,7 +5,7 @@ import logging
 
 import requests
 from bs4 import BeautifulSoup
-from scrapper_helpers.utils import caching
+from scrapper_helpers.utils import caching, key_sha1
 
 from trojmiastopl import BASE_URL
 
@@ -119,7 +119,8 @@ def obfuscator_request(contact_hash, cookie):
     :type contact_hash: str
     :return: Response returned by request
     """
-    response = requests.post(OBFUSCATOR_URL, data={"hash": contact_hash, "type": "ogloszenia"}, headers={"cookie": "{0}".format(cookie)})
+    response = requests.post(OBFUSCATOR_URL, data={"hash": contact_hash, "type": "ogloszenia"},
+                             headers={"cookie": "{0}".format(cookie)})
     try:
         response.raise_for_status()
     except requests.HTTPError as e:
@@ -137,7 +138,8 @@ def get_cookie_from(response):
     cookie = response.headers['Set-Cookie'].split(';')[0]
     return cookie
 
-@caching
+
+@caching(key_func=key_sha1)
 def get_content_for_url(url):
     """ Connects with given url
 
