@@ -16,7 +16,7 @@ else:
     from unittest import mock
 
 SEARCH_URL = "http://ogloszenia.trojmiasto.pl/nieruchomosci-mam-do-wynajecia/wi,100,ai,2500_,dw,3d,s,Gda%C5%84sk.html"
-OFFER_URL = "http://ogloszenia.trojmiasto.pl/nieruchomosci-mam-do-wynajecia/mieszkanie-2-pok-gdansk-kokoszki-od-wrzesnia-ogl60598311.html"
+OFFER_URL = "http://ogloszenia.trojmiasto.pl/nieruchomosci-mam-do-wynajecia/apartament-3-pokojowy-65-m-kw-centrum-wrzeszcza-ul-partyzantow-ogl60570207.html"
 
 
 @pytest.mark.parametrize("list1", [[2, [[3], [1]], [4, [0]]]])
@@ -110,15 +110,12 @@ def test_parse_description(description_parser):
 
 @pytest.mark.skipif(sys.version_info < (3, 1), reason="requires Python3")
 def test_get_title(title_parser):
-    assert trojmiastopl.offer.get_title(title_parser) == "Mieszkanie 2 pok. Gdańsk Kokoszki od września"
-
-
-def test_get_price(sidebar_parser):
-    assert trojmiastopl.offer.get_price(sidebar_parser) == 1200
+    assert trojmiastopl.offer.get_title(
+        title_parser) == "Apartament 3 pokojowy 65 m.kw. centrum Wrzeszcza ul Partyzantów"
 
 
 def test_get_surface(sidebar_parser):
-    assert trojmiastopl.offer.get_surface(sidebar_parser) == 42.0
+    assert trojmiastopl.offer.get_surface(sidebar_parser) == 65.0
 
 
 def test_get_img_url(gallery_parser):
@@ -134,9 +131,9 @@ def test_parse_offer(response_parser):
 
 def test_parse_flat_data(sidebar_parser):
     test = trojmiastopl.offer.parse_flat_data(sidebar_parser)
-    assert test["pietro"] == 1
-    assert test["l_pokoi"] == 2
-    assert test["rok_budowy"] == 2009
+    assert test["pietro"] == 0
+    assert test["l_pokoi"] == 3
+    assert test["rok_budowy"] is None
     assert test["l_pieter"] == 4
 
 

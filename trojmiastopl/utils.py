@@ -12,6 +12,7 @@ from trojmiastopl import BASE_URL
 log = logging.getLogger(__file__)
 
 SEARCH_URL = "https://ogloszenia.trojmiasto.pl/szukaj/"
+OBFUSCATOR_URL = "http://ogloszenia.trojmiasto.pl/_ajax/obfuscator/?decode"
 
 
 def flatten(container):
@@ -110,6 +111,31 @@ def get_url(category, region=None, **filters):
         url += "s,{0}.html".format(region)
     return url
 
+
+def obfuscator_request(contact_hash, cookie):
+    """ Sends request to http://ogloszenia.trojmiasto.pl/_ajax/obfuscator/?decode
+
+    :param contact_hash: Data hash needed to decode information
+    :type contact_hash: str
+    :return: Response returned by request
+    """
+    response = requests.post(OBFUSCATOR_URL, data={"hash": contact_hash, "type": "ogloszenia"}, headers={"cookie": "{0}".format(cookie)})
+    try:
+        response.raise_for_status()
+    except requests.HTTPError as e:
+        log.warning('Request for {0} failed. Error: {1}'.format(OBFUSCATOR_URL, e))
+        return None
+    return response
+
+
+def get_cookie_from(response):
+    """
+    :param response: a requests.response object
+    :rtype: string
+    :return: cookie information as string
+    """
+    cookie = response.headers['Set-Cookie'].split(';')[0]
+    return cookie
 
 @caching
 def get_content_for_url(url):

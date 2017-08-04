@@ -6,7 +6,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from trojmiastopl.utils import get_content_for_url
+from trojmiastopl.utils import get_cookie_from, get_content_for_url, obfuscator_request
 
 try:
     from __builtin__ import unicode
@@ -41,6 +41,60 @@ def get_img_url(offer_markup):
     output = []
     for img in images:
         output.append(img.attrs["href"])
+    return output
+
+
+def parse_region(offer_markup):
+    """ Parses region information
+
+    :param offer_markup: Class "sidebar" from offer page markup
+    :type offer_markup: str
+    :return: Region of offer
+    :rtype: dict
+    """
+    html_parser = BeautifulSoup(offer_markup, "html.parser")
+    parsed_address = html_parser.find(class_="address").find(class_="dd").contents
+    output = {"address": None, "voivodeship": "Pomorskie", "city": None, "district": None}
+    output["city"] = str(parsed_address[0]).replace("\xa0", "")
+    district_parser = BeautifulSoup(str(parsed_address[1]), "html.parser")
+    district = district_parser.find("a")
+    if district is not None and len(parsed_address) > 2:
+        output["district"] = district.text
+        output["address"] = "{0}, {1}, {2}".format(
+            output["city"],
+            output["district"],
+            str(parsed_address[3]).replace("\xa0", "")
+        )
+    elif district is not None:
+        output["address"] = "{0}, {1}".format(
+            output["city"],
+            output["district"]
+        )
+    elif len(parsed_address) == 1:
+        output["address"] = output["city"]
+    else:
+        output["address"] = "{0}, {1}".format(output["city"], str(parsed_address[2]).replace("\xa0", ""))
+    return output
+
+
+def parse_dates_and_id(offer_markup):
+    """ Searches for date of creating and date of last update of an offer. Additionally parses offer id number.
+
+    :param offer_markup: Class "sidebar" from offer page markup
+    :type offer_markup: str
+    :return: Date added and date updated if found and offer id (id, added, updated)
+    :rtype: dict
+    """
+    html_parser = BeautifulSoup(offer_markup, "html.parser")
+    parsed_details = html_parser.find_all("li")
+    output = {"updated": None}
+    for detail in parsed_details:
+        if "numer ogłoszenia" in detail.text:
+            output["id"] = detail.span.text
+        elif "wprowadzenia" in detail.text:
+            output["added"] = detail.span.text
+        elif "aktualizacja" in detail.text:
+            output["updated"] = detail.span.text
     return output
 
 
@@ -87,6 +141,35 @@ def get_available_from(offer_markup):
                                                                                                                  "")
     except AttributeError:
         return None
+
+
+def get_additional_information(offer_markup):
+    """ Searches for additional info and heating type
+
+    :param offer_markup: Class "sidebar" from offer page markup
+    :type offer_markup: str
+    :return: Additional info with optional heating type
+    :rtype: str
+    """
+    html_parser = BeautifulSoup(offer_markup, "html.parser")
+    found = None
+    for item in html_parser.find_all('div', class_="odd"):
+        if "informacje" in item.text:
+            found = item
+            break
+    for item in html_parser.find_all('div', class_="even"):
+        if "informacje" in item.text:
+            found = item
+            break
+    heating = html_parser.find('div', class_="typ_ogrzewania")
+    if found is None and heating is None:
+        return
+    elif heating is None:
+        return found.find(class_="dd").text
+    elif found is None:
+        return "ogrzewanie " + heating.find(class_="dd").text.replace("  ", "").replace("\n", " ")
+    return found.find(class_="dd").text + ", ogrzewanie " + heating.find(class_="dd").text.replace("  ", "").replace(
+        "\n", " ")
 
 
 def parse_description(description_markup):
@@ -144,7 +227,39 @@ def parse_flat_data(offer_markup):
     return flat_data
 
 
-def parse_offer(markup, url):
+def parse_contact_details(contact_markup, cookie):
+    """ Parses contact information
+
+    :param contact_markup: Class "contact-box" from offer page markup
+    :type contact_markup: str
+    :return: Contact details including name, phone number and e-mail address
+    :rtype: dict
+    """
+    html_parser = BeautifulSoup(contact_markup, "html.parser")
+    contact_details = {"phone": None, "mail": None}
+    poster_name = html_parser.find(class_="name")
+    if poster_name is not None:
+        contact_details["name"] = poster_name.text.replace("\n", "").replace("  ", "")
+    else:
+        contact_details["name"] = None
+    contact_hashes = html_parser.find_all("a")
+    for contact_hash in contact_hashes:
+        if contact_hash.has_attr("data-hash"):
+            response = obfuscator_request(contact_hash.attrs["data-hash"], cookie).json()
+        else:
+            continue
+        try:
+            if "@" in response["phrase"]:
+                contact_details["mail"] = response["phrase"]
+            else:
+                contact_details["phone"] = response["phrase"]
+        except KeyError:
+            log.warning(response)
+            break
+    return contact_details
+
+
+def parse_offer(markup, url, cookie):
     """ Parses data from offer page markup
 
     :param markup: Offer page markup
@@ -161,16 +276,26 @@ def parse_offer(markup, url):
     try:
         title = get_title(offer_content)
     except AttributeError as e:
-        log.warning("Offer {0} got deleted. Error: {1}".format(url, e))
+        log.warning("Offer {0} is not available anymore. Error: {1}".format(url, e))
         return
     images = get_img_url(str(html_parser.find(id="gallery")))
+    contact_content = str(html_parser.find(class_="contact-box"))
+    contact_details = parse_contact_details(contact_content, cookie)
+    date_details = str(html_parser.find(class_="ogl-info-wrap"))
+    dates_id = parse_dates_and_id(date_details)
     description = parse_description(str(html_parser.find(class_="ogl-description")))
     offer_content = str(html_parser.find(id="sidebar"))
     surface = get_surface(offer_content)
     flat_data = parse_flat_data(offer_content)
+    address = parse_region(offer_content)
     return {
         "title": title,
+        "offer_id": dates_id["id"],
         "type": get_apartment_type(offer_content),
+        "address": address["address"],
+        "voivodeship": address["voivodeship"],
+        "city": address["city"],
+        "district": address["district"],
         "price": flat_data["cena"],
         "deposit": flat_data["kaucja"],
         "surface": surface,
@@ -181,6 +306,12 @@ def parse_offer(markup, url):
         "built_date": flat_data["rok_budowy"],
         "available_from": get_available_from(offer_content),
         "furniture": get_furnished(offer_content),
+        "additional: ": get_additional_information(offer_content),
+        "poster_name": contact_details["name"],
+        "phone_number": contact_details["phone"],
+        "mail": contact_details["mail"],
+        "date_added": dates_id["added"],
+        "date_updated": dates_id["updated"],
         "url": url,
         "description": description,
         "images": images
@@ -200,8 +331,9 @@ def get_descriptions(parsed_urls):
         if url is None:
             continue
         response = get_content_for_url(url)
+        cookie = get_cookie_from(response)
         log.debug(url)
-        current_offer = parse_offer(response.content, url)
+        current_offer = parse_offer(response.content, url, cookie)
         if current_offer is not None:
             descriptions.append(current_offer)
     return descriptions
