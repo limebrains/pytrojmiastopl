@@ -233,6 +233,7 @@ def parse_contact_details(contact_markup, cookie):
     """ Parses contact information
 
     :param contact_markup: Class "contact-box" from offer page markup
+    :param cookie: Cookie
     :type contact_markup: str
     :return: Contact details including name, phone number and e-mail address
     :rtype: dict
@@ -266,6 +267,7 @@ def parse_offer(markup, url, cookie):
 
     :param markup: Offer page markup
     :param url: Url of current offer page
+    :param cookie: Cookie
     :type markup: str
     :type url: str
     :return: Dictionary with all offer details

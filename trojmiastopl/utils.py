@@ -130,10 +130,11 @@ def obfuscator_request(contact_hash, cookie):
 
 
 def get_cookie_from(response):
-    """
-    :param response: a requests.response object
+    """ Provides cookie for given response
+
+    :param response: Requests.response object
+    :return: Cookie information as string
     :rtype: string
-    :return: cookie information as string
     """
     cookie = response.headers['Set-Cookie'].split(';')[0]
     return cookie

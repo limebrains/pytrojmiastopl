@@ -118,6 +118,13 @@ def test_get_surface(sidebar_parser):
     assert trojmiastopl.offer.get_surface(sidebar_parser) == 65.0
 
 
+def test_parse_dates_and_id(sidebar_parser):
+    test = trojmiastopl.offer.parse_dates_and_id(sidebar_parser)
+    assert test["id"] == "60570207"
+    assert test["added"] == "19 lipca 2017"
+    assert test["updated"] == "2 sierpnia 2017"
+
+
 def test_get_img_url(gallery_parser):
     images = trojmiastopl.offer.get_img_url(gallery_parser)
     assert isinstance(images, list)
@@ -125,8 +132,17 @@ def test_get_img_url(gallery_parser):
         assert "ogloszenia/foto" in img
 
 
+response = trojmiastopl.utils.get_content_for_url(OFFER_URL)
+cookie = trojmiastopl.utils.get_cookie_from(response)
+
+
+@pytest.mark.parametrize("content_hash", ["hsdhaA@$CAc3accearaw"])
+def test_obfuscator(content_hash):
+    assert trojmiastopl.utils.obfuscator_request(content_hash, cookie)
+
+
 def test_parse_offer(response_parser):
-    assert isinstance(trojmiastopl.offer.parse_offer(response_parser, OFFER_URL), dict)
+    assert isinstance(trojmiastopl.offer.parse_offer(response_parser, OFFER_URL, cookie), dict)
 
 
 def test_parse_flat_data(sidebar_parser):
@@ -140,6 +156,20 @@ def test_parse_flat_data(sidebar_parser):
 @pytest.mark.parametrize("urls", [parsed_urls])
 def test_get_descriptions(urls):
     assert isinstance(trojmiastopl.offer.get_descriptions(urls), list)
+
+
+@pytest.mark.parametrize("category,region,filters", [
+    ("nieruchomosci-mam-do-wynajecia", "Gdansk", {"data_wprow": "1d", "cdata_wprow": (300, None)}),
+])
+def test_get_page_count_for_filters(category, region, filters):
+    assert trojmiastopl.category.get_page_count_for_filters(category, region, **filters) <= 2
+
+
+@pytest.mark.parametrize("category,region,filters", [
+    ("nieruchomosci-mam-do-wynajecia", "Gdansk", {"data_wprow": "1d", "cdata_wprow": (300, None)}),
+])
+def get_offers_for_page(category, region, filters):
+    assert isinstance(trojmiastopl.category.get_offers_for_page(category, region, **filters), list)
 
 
 @pytest.mark.parametrize("category,region,filters", [
