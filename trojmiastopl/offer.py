@@ -7,7 +7,7 @@ import re
 from bs4 import BeautifulSoup
 from scrapper_helpers.utils import caching, key_sha1
 
-from trojmiastopl.utils import get_cookie_from, get_content_for_url, obfuscator_request
+from trojmiastopl.utils import get_content_for_url, get_cookie_from, obfuscator_request
 
 try:
     from __builtin__ import unicode
@@ -90,7 +90,7 @@ def parse_dates_and_id(offer_markup):
     parsed_details = html_parser.find_all("li")
     output = {"updated": None}
     for detail in parsed_details:
-        if "numer ogłoszenia" in detail.text:
+        if "numer" in detail.text:
             output["id"] = detail.span.text
         elif "wprowadzenia" in detail.text:
             output["added"] = detail.span.text
