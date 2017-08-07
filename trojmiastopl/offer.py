@@ -240,7 +240,7 @@ def parse_contact_details(contact_markup, cookie):
     :rtype: dict
     """
     html_parser = BeautifulSoup(contact_markup, "html.parser")
-    contact_details = {"phone": ['test'], "mail": None}
+    contact_details = {"phone": [], "mail": None}
     poster_name = html_parser.find(class_="name")
     if poster_name is not None:
         contact_details["name"] = poster_name.text.replace("\n", "").replace("  ", "")
@@ -276,6 +276,7 @@ def parse_offer(markup, url, cookie):
 
     :except: If there is no offer title anymore - offer got deleted.
     """
+    log.debug(url)
     html_parser = BeautifulSoup(markup, "html.parser")
     offer_content = str(html_parser.find(class_="title-wrap"))
     try:
@@ -337,7 +338,6 @@ def get_descriptions(parsed_urls):
             continue
         response = get_content_for_url(url)
         cookie = get_cookie_from(response)
-        log.debug(url)
         current_offer = parse_offer(response.content, url, cookie)
         if current_offer is not None:
             descriptions.append(current_offer)
