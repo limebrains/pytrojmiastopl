@@ -57,6 +57,9 @@ def parse_region(offer_markup):
     parsed_address = html_parser.find(class_="address").find(class_="dd").contents
     output = {"address": None, "voivodeship": "Pomorskie", "city": None, "district": None}
     output["city"] = str(parsed_address[0]).replace("\xa0", "")
+    if len(parsed_address) == 1:
+        output["address"] = output["city"]
+        return output
     district_parser = BeautifulSoup(str(parsed_address[1]), "html.parser")
     district = district_parser.find("a")
     if district is not None and len(parsed_address) > 2:
@@ -72,8 +75,6 @@ def parse_region(offer_markup):
             output["city"],
             output["district"]
         )
-    elif len(parsed_address) == 1:
-        output["address"] = output["city"]
     else:
         output["address"] = "{0}, {1}".format(output["city"], str(parsed_address[2]).replace("\xa0", ""))
     return output
