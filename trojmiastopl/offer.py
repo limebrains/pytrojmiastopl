@@ -230,12 +230,12 @@ def parse_flat_data(offer_markup):
     return flat_data
 
 
-@caching(key_func=key_sha1)
+#@caching(key_func=key_sha1)
 def parse_contact_details(contact_markup, cookie):
     """ Parses contact information
 
     :param contact_markup: Class "contact-box" from offer page markup
-    :param cookie: Cookie
+    :param cookie: PHPSESSID
     :type contact_markup: str
     :return: Contact details including name, phone number and e-mail address
     :rtype: dict
@@ -250,6 +250,7 @@ def parse_contact_details(contact_markup, cookie):
     contact_hashes = html_parser.find_all("a")
     for contact_hash in contact_hashes:
         if contact_hash.has_attr("data-hash"):
+            print(contact_hash.attrs["data-hash"], cookie)
             response = obfuscator_request(contact_hash.attrs["data-hash"], cookie).json()
         else:
             continue
