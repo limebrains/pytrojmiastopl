@@ -67,6 +67,7 @@ def parse_region(offer_markup):
             str(parsed_address[3]).replace("\xa0", "")
         )
     elif district is not None:
+        output["district"] = district.text
         output["address"] = "{0}, {1}".format(
             output["city"],
             output["district"]
@@ -239,7 +240,7 @@ def parse_contact_details(contact_markup, cookie):
     :rtype: dict
     """
     html_parser = BeautifulSoup(contact_markup, "html.parser")
-    contact_details = {"phone": None, "mail": None}
+    contact_details = {"phone": ['test'], "mail": None}
     poster_name = html_parser.find(class_="name")
     if poster_name is not None:
         contact_details["name"] = poster_name.text.replace("\n", "").replace("  ", "")
@@ -255,7 +256,7 @@ def parse_contact_details(contact_markup, cookie):
             if "@" in response["phrase"]:
                 contact_details["mail"] = response["phrase"]
             else:
-                contact_details["phone"] = response["phrase"]
+                contact_details["phone"].append(response["phrase"])
         except KeyError:
             log.warning(response)
             break
@@ -312,7 +313,7 @@ def parse_offer(markup, url, cookie):
         "furniture": get_furnished(offer_content),
         "additional: ": get_additional_information(offer_content),
         "poster_name": contact_details["name"],
-        "phone_number": contact_details["phone"],
+        "phone_numbers": contact_details["phone"],
         "mail": contact_details["mail"],
         "date_added": dates_id["added"],
         "date_updated": dates_id["updated"],

@@ -31,7 +31,7 @@ def get_page_count(markup):
         return 1
 
 
-def get_page_count_for_filters(category, region, **filters):
+def get_page_count_for_filters(category, region=None, **filters):
     """ Reads total page number for given search filters
 
     :param category: Search category
