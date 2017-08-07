@@ -113,7 +113,7 @@ def get_surface(offer_markup):
     """
     html_parser = BeautifulSoup(offer_markup, "html.parser")
     surface = html_parser.sup.parent.previous_sibling
-    return float(surface.replace(" m2", "").replace("\t", "").replace("\n", "").replace(",", "."))
+    return float(surface.replace("m2", "").replace("\t", "").replace("\n", "").replace(",", ".").replace(" ", ""))
 
 
 def get_apartment_type(offer_markup):
