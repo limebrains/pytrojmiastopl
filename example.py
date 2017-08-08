@@ -15,7 +15,6 @@ if __name__ == '__main__':
         "cena[]": (2000, None)
     }
     parsed_urls = get_category("nieruchomosci-mam-do-wynajecia", "Gdańsk", **search_filters)[:3]
-    parsed_urls[2]="http://ogloszenia.trojmiasto.pl/nieruchomosci-mam-do-wynajecia/rukosin-rukosin-11500-m2-ogl60624149.html"
     descriptions = get_descriptions(parsed_urls)
     for element in descriptions:
         print()
