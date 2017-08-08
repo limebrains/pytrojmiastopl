@@ -157,13 +157,9 @@ def get_additional_information(offer_markup):
     :return: Additional info with optional heating type
     :rtype: str
     """
-    html_parser = BeautifulSoup(offer_markup, "html.parser")
+    html_parser = BeautifulSoup(offer_markup, "html.parser").find(class_="description")
     found = None
-    for item in html_parser.find_all('div', class_="odd"):
-        if "informacje" in item.text:
-            found = item
-            break
-    for item in html_parser.find_all('div', class_="even"):
+    for item in html_parser.find_all('div'):
         if "informacje" in item.text:
             found = item
             break
