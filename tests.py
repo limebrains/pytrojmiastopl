@@ -122,7 +122,7 @@ def test_parse_dates_and_id(sidebar_parser):
     test = trojmiastopl.offer.parse_dates_and_id(sidebar_parser)
     assert test["id"] == "60570207"
     assert test["added"] == "19 lipca 2017"
-    assert test["updated"] == "6 sierpnia 2017"
+    assert test["updated"] == "7 sierpnia 2017"
 
 
 def test_get_img_url(gallery_parser):
