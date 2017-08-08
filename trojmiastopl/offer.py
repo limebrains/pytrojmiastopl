@@ -289,6 +289,7 @@ def parse_offer(markup, url):
         "city": address["city"],
         "district": address["district"],
         "price": flat_data["cena"],
+        "currency": "PLN",
         "deposit": flat_data["kaucja"],
         "surface": surface,
         "price/surface": round(flat_data["cena"] / surface),
