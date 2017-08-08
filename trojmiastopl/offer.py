@@ -25,7 +25,7 @@ def get_title(offer_markup):
     :rtype: str
     """
     html_parser = BeautifulSoup(offer_markup, "html.parser")
-    return html_parser.find(id="ogl-title").text.replace("\n", "").replace("  ", "").replace(u'\xa0', u' ')
+    return html_parser.find(id="ogl-title").text.strip()
 
 
 def get_img_url(offer_markup):
@@ -116,7 +116,7 @@ def get_surface(offer_markup):
     """
     html_parser = BeautifulSoup(offer_markup, "html.parser")
     surface = html_parser.sup.parent.previous_sibling
-    return float(surface.replace("m2", "").replace("\t", "").replace("\n", "").replace(",", ".").replace(" ", ""))
+    return float(surface.replace("m2", "").strip().replace(",", ".").replace(" ", ""))
 
 
 def get_apartment_type(offer_markup):
@@ -128,8 +128,7 @@ def get_apartment_type(offer_markup):
     :rtype: str
     """
     html_parser = BeautifulSoup(offer_markup, "html.parser")
-    built_type = html_parser.find(class_="rodzaj_nieruchomosci").contents
-    return built_type[3].text.replace('<div class="dd">', '').replace('</div>', '').replace('  ', '').replace("\n", "")
+    return html_parser.find(class_="rodzaj_nieruchomosci").find(class_="dd").text.strip()
 
 
 def get_available_from(offer_markup):
@@ -142,11 +141,9 @@ def get_available_from(offer_markup):
     """
     html_parser = BeautifulSoup(offer_markup, "html.parser")
     try:
-        available = html_parser.find(class_="dostepne_od").contents
-        return available[3].text.replace('<div class="dd">', '').replace('</div>', '').replace('  ', '').replace("\n",
-                                                                                                                 "")
+        return html_parser.find(class_="dostepne_od").find(class_="dd").text.strip()
     except AttributeError:
-        return None
+        return
 
 
 def get_additional_information(offer_markup):
@@ -155,27 +152,31 @@ def get_additional_information(offer_markup):
     :param offer_markup: Class "sidebar" from offer page markup
     :type offer_markup: str
     :return: Additional info with optional heating type
-    :rtype: str
+    :rtype: dict
     """
-    html_parser = BeautifulSoup(offer_markup, "html.parser")
-    found = None
-    for item in html_parser.find_all('div', class_="odd"):
-        if "informacje" in item.text:
-            found = item
-            break
-    for item in html_parser.find_all('div', class_="even"):
-        if "informacje" in item.text:
-            found = item
-            break
+    html_parser = BeautifulSoup(offer_markup, "html.parser").find(class_="description")
+    additional_info = "".join([
+        part.strip()
+        for i, part in enumerate(html_parser.text.split('Dodatkowe informacje'))
+        if i == 1
+    ])
     heating = html_parser.find('div', class_="typ_ogrzewania")
-    if found is None and heating is None:
-        return
-    elif heating is None:
-        return found.find(class_="dd").text
-    elif found is None:
-        return "ogrzewanie " + heating.find(class_="dd").text.replace("  ", "").replace("\n", " ")
-    return found.find(class_="dd").text + ", ogrzewanie " + heating.find(class_="dd").text.replace("  ", "").replace(
-        "\n", " ")
+    return {
+        'heating': heating.find(class_="dd").text.strip() if heating else False,
+        'balcony': 'balkon' in additional_info,
+        'kitchen': 'kuchnia' in additional_info,
+        'terrace': 'taras' in additional_info,
+        'internet': 'internet' in additional_info,
+        'elevator': 'winda' in additional_info,
+        'car_parking': 'parkingowe' in additional_info,
+        'disabled_facilities': 'podjazd' in additional_info,
+        'mezzanine': 'antresola' in additional_info,
+        'basement': 'piwnica' in additional_info,
+        'duplex_apartment': 'dwupoziomowe' in additional_info,
+        'garden': 'ogródek' in additional_info,
+        'garage': 'garaż' in additional_info,
+        'cable_tv': 'kablówka' in additional_info
+    }
 
 
 def parse_description(description_markup):
@@ -244,7 +245,7 @@ def parse_poster_name(contact_markup):
     html_parser = BeautifulSoup(contact_markup, "html.parser")
     poster_name = html_parser.find(class_="name")
     if poster_name is not None:
-        poster_name = poster_name.text.replace("\n", "").replace("  ", "")
+        poster_name = poster_name.text.strip()
     else:
         poster_name = None
     return poster_name
@@ -288,6 +289,7 @@ def parse_offer(markup, url):
         "city": address["city"],
         "district": address["district"],
         "price": flat_data["cena"],
+        "currency": "PLN",
         "deposit": flat_data["kaucja"],
         "surface": surface,
         "price/surface": round(flat_data["cena"] / surface),

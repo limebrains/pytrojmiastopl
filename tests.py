@@ -37,9 +37,10 @@ offers = html_parser.find_all(class_='ogl-head')
 parsed_urls = [OFFER_URL]
 
 
-@pytest.mark.parametrize("payload", [(("id_kat", 104), ("cena[]", 300), ("data_wprow", "1d"))])
+@pytest.mark.parametrize("payload", [(("rodzaj_nieruchomosci", 100), ("cena[]", 300), ("data_wprow", "1d"))])
 def test_get_url_for_filters(payload):
-    assert "http://trojmiasto.pl/" in trojmiastopl.utils.get_url_for_filters(payload)
+    print(trojmiastopl.utils.get_url_for_filters(payload))
+    assert "http://ogloszenia.trojmiasto.pl" in trojmiastopl.utils.get_url_for_filters(payload)
 
 
 @pytest.mark.parametrize("category,region,filters", [
