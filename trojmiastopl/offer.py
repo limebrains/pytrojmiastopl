@@ -158,19 +158,16 @@ def get_additional_information(offer_markup):
     :rtype: str
     """
     html_parser = BeautifulSoup(offer_markup, "html.parser").find(class_="description")
-    found = None
-    for item in html_parser.find_all('div'):
-        if "informacje" in item.text:
-            found = item
-            break
+    text = "".join(str(html_parser.find_all('div'))).split("Dodatkowe informacje")
+    found = BeautifulSoup(text[1], "html.parser").find(class_="dd").text if len(text) == 3 else None
     heating = html_parser.find('div', class_="typ_ogrzewania")
     if found is None and heating is None:
         return
     elif heating is None:
-        return found.find(class_="dd").text
+        return found
     elif found is None:
         return "ogrzewanie " + heating.find(class_="dd").text.replace("  ", "").replace("\n", " ")
-    return found.find(class_="dd").text + ", ogrzewanie " + heating.find(class_="dd").text.replace("  ", "").replace(
+    return found + ", ogrzewanie " + heating.find(class_="dd").text.replace("  ", "").replace(
         "\n", " ")
 
 
