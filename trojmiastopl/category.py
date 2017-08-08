@@ -31,7 +31,7 @@ def get_page_count(markup):
         return 1
 
 
-def get_page_count_for_filters(category, region, **filters):
+def get_page_count_for_filters(category, region=None, **filters):
     """ Reads total page number for given search filters
 
     :param category: Search category
@@ -95,6 +95,7 @@ def get_category(category, region=None, **filters):
     input_dict = {
         "offer_type": "Mieszkanie", # offer type. See :meth:`utils.decode_type' for reference
         "cena[]": (300, None), # price (from, to). None if you don't want to pass one of arguments
+        "kaucja[]: (100,1000), # deposit
         "cena_za_m2[]": (5, 100), # price/surface
         "powierzchnia[]": (23, 300), # surface
         "l_pokoi[]": (2, 5), # desired number of rooms

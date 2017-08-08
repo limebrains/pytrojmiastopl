@@ -16,7 +16,7 @@ else:
     from unittest import mock
 
 SEARCH_URL = "http://ogloszenia.trojmiasto.pl/nieruchomosci-mam-do-wynajecia/wi,100,ai,2500_,dw,3d,s,Gda%C5%84sk.html"
-OFFER_URL = "http://ogloszenia.trojmiasto.pl/nieruchomosci-mam-do-wynajecia/mieszkanie-2-pok-gdansk-kokoszki-od-wrzesnia-ogl60598311.html"
+OFFER_URL = "http://ogloszenia.trojmiasto.pl/nieruchomosci-mam-do-wynajecia/apartament-3-pokojowy-65-m-kw-centrum-wrzeszcza-ul-partyzantow-ogl60570207.html"
 
 
 @pytest.mark.parametrize("list1", [[2, [[3], [1]], [4, [0]]]])
@@ -59,7 +59,7 @@ def test_get_conntent_for_url(test_url):
 
 @pytest.mark.parametrize("page_count", [response.content])
 def test_get_page_count(page_count):
-    assert trojmiastopl.category.get_page_count(page_count) == 2
+    assert trojmiastopl.category.get_page_count(page_count) <= 3
 
 
 @pytest.mark.parametrize("offers", [response.content])
@@ -110,15 +110,19 @@ def test_parse_description(description_parser):
 
 @pytest.mark.skipif(sys.version_info < (3, 1), reason="requires Python3")
 def test_get_title(title_parser):
-    assert trojmiastopl.offer.get_title(title_parser) == "Mieszkanie 2 pok. Gdańsk Kokoszki od września"
-
-
-def test_get_price(sidebar_parser):
-    assert trojmiastopl.offer.get_price(sidebar_parser) == 1200
+    assert trojmiastopl.offer.get_title(
+        title_parser) == "Apartament 3 pokojowy 65 m.kw. centrum Wrzeszcza ul Partyzantów"
 
 
 def test_get_surface(sidebar_parser):
-    assert trojmiastopl.offer.get_surface(sidebar_parser) == 42.0
+    assert trojmiastopl.offer.get_surface(sidebar_parser) == 65.0
+
+
+def test_parse_dates_and_id(sidebar_parser):
+    test = trojmiastopl.offer.parse_dates_and_id(sidebar_parser)
+    assert test["id"] == "60570207"
+    assert test["added"] == "19 lipca 2017"
+    assert test["updated"] == "7 sierpnia 2017"
 
 
 def test_get_img_url(gallery_parser):
@@ -128,21 +132,37 @@ def test_get_img_url(gallery_parser):
         assert "ogloszenia/foto" in img
 
 
+@pytest.mark.skipif(sys.version_info < (3, 1), reason="requires Python3")
 def test_parse_offer(response_parser):
     assert isinstance(trojmiastopl.offer.parse_offer(response_parser, OFFER_URL), dict)
 
 
 def test_parse_flat_data(sidebar_parser):
     test = trojmiastopl.offer.parse_flat_data(sidebar_parser)
-    assert test["pietro"] == 1
-    assert test["l_pokoi"] == 2
-    assert test["rok_budowy"] == 2009
+    assert test["pietro"] == 0
+    assert test["l_pokoi"] == 3
+    assert test["rok_budowy"] is None
     assert test["l_pieter"] == 4
 
 
+@pytest.mark.skipif(sys.version_info < (3, 1), reason="requires Python3")
 @pytest.mark.parametrize("urls", [parsed_urls])
 def test_get_descriptions(urls):
     assert isinstance(trojmiastopl.offer.get_descriptions(urls), list)
+
+
+@pytest.mark.parametrize("category,region,filters", [
+    ("nieruchomosci-mam-do-wynajecia", "Gdansk", {"data_wprow": "1d", "cdata_wprow": (300, None)}),
+])
+def test_get_page_count_for_filters(category, region, filters):
+    assert trojmiastopl.category.get_page_count_for_filters(category, region, **filters) <= 2
+
+
+@pytest.mark.parametrize("category,region,filters", [
+    ("nieruchomosci-mam-do-wynajecia", "Gdansk", {"data_wprow": "1d", "cdata_wprow": (300, None)}),
+])
+def get_offers_for_page(category, region, filters):
+    assert isinstance(trojmiastopl.category.get_offers_for_page(category, region, **filters), list)
 
 
 @pytest.mark.parametrize("category,region,filters", [

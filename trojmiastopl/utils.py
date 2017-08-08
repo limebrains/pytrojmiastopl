@@ -5,13 +5,14 @@ import logging
 
 import requests
 from bs4 import BeautifulSoup
-from scrapper_helpers.utils import caching
+from scrapper_helpers.utils import caching, key_sha1
 
 from trojmiastopl import BASE_URL
 
 log = logging.getLogger(__file__)
 
 SEARCH_URL = "https://ogloszenia.trojmiasto.pl/szukaj/"
+OBFUSCATOR_URL = "http://ogloszenia.trojmiasto.pl/_ajax/obfuscator/?decode"
 
 
 def flatten(container):
@@ -111,7 +112,7 @@ def get_url(category, region=None, **filters):
     return url
 
 
-@caching
+@caching(key_func=key_sha1)
 def get_content_for_url(url):
     """ Connects with given url
 
