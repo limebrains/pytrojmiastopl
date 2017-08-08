@@ -57,6 +57,21 @@ def decode_type(filter_value):
     return available.get(filter_value, 0)
 
 
+def decode_category_name(category):
+    """ Decodes category name to it's value
+
+    :param category: Category name
+    :type category: str
+    :return: Category number
+    :rtype: int
+    """
+    available = {
+        "nieruchomosci-sprzedam": 101,
+        "nieruchomosci-mam-do-wynajecia": 104
+    }
+    return available.get(category, 100)
+
+
 def get_url_for_filters(payload):
     """ Parses url from trojmiasto.pl search engine using POST method for given payload of data
 
@@ -67,7 +82,7 @@ def get_url_for_filters(payload):
     """
     response = requests.post(SEARCH_URL, payload)
     html_parser = BeautifulSoup(response.content, "html.parser")
-    url = html_parser.find(rel="alternate").attrs['href'].replace("/m.", "/")
+    url = html_parser.find(class_="nice-select-tsi").find("option").next_sibling.next_sibling.attrs["value"]
     return url
 
 
@@ -84,11 +99,12 @@ def get_url(category, region=None, **filters):
     :rtype: str
     """
     url = "/".join([BASE_URL, category]) + "/"
+    category_id = decode_category_name(category)
     if filters:
         if region is not None:
-            payload = (("id_kat", 104), ("s", region))
+            payload = (("id_kat", category_id), ("s", region))
         else:
-            payload = (("id_kat", 104),)
+            payload = (("id_kat", category_id),)
         for k, v in filters.items():
             if isinstance(v, tuple):
                 if v[0] is None:
@@ -100,7 +116,7 @@ def get_url(category, region=None, **filters):
                 continue
             elif "offer_type" == k:
                 v = decode_type(v)
-                k = "wi"
+                k = "rodzaj_nieruchomosci"
             elif "data_wprow" == k:
                 available = ["1d", "3d", "1w", "3w"]
                 if v not in available:
