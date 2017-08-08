@@ -5,9 +5,8 @@ import logging
 import re
 
 from bs4 import BeautifulSoup
-from scrapper_helpers.utils import caching, key_sha1
 
-from trojmiastopl.utils import get_content_for_url, get_cookie_from, obfuscator_request
+from trojmiastopl.utils import get_content_for_url
 
 try:
     from __builtin__ import unicode
@@ -230,47 +229,28 @@ def parse_flat_data(offer_markup):
     return flat_data
 
 
-#@caching(key_func=key_sha1)
-def parse_contact_details(contact_markup, cookie):
-    """ Parses contact information
+def parse_poster_name(contact_markup):
+    """ Parses poster name
 
     :param contact_markup: Class "contact-box" from offer page markup
-    :param cookie: PHPSESSID
     :type contact_markup: str
-    :return: Contact details including name, phone number and e-mail address
-    :rtype: dict
+    :return: Poster name
+    :rtype: str
     """
     html_parser = BeautifulSoup(contact_markup, "html.parser")
-    contact_details = {"phone": [], "mail": None}
     poster_name = html_parser.find(class_="name")
     if poster_name is not None:
-        contact_details["name"] = poster_name.text.replace("\n", "").replace("  ", "")
+        poster_name = poster_name.text.replace("\n", "").replace("  ", "")
     else:
-        contact_details["name"] = None
-    contact_hashes = html_parser.find_all("a")
-    for contact_hash in contact_hashes:
-        if contact_hash.has_attr("data-hash"):
-            print(contact_hash.attrs["data-hash"], cookie)
-            response = obfuscator_request(contact_hash.attrs["data-hash"], cookie).json()
-        else:
-            continue
-        try:
-            if "@" in response["phrase"]:
-                contact_details["mail"] = response["phrase"]
-            else:
-                contact_details["phone"].append(response["phrase"])
-        except KeyError:
-            log.warning(response)
-            break
-    return contact_details
+        poster_name = None
+    return poster_name
 
 
-def parse_offer(markup, url, cookie):
+def parse_offer(markup, url):
     """ Parses data from offer page markup
 
     :param markup: Offer page markup
     :param url: Url of current offer page
-    :param cookie: Cookie
     :type markup: str
     :type url: str
     :return: Dictionary with all offer details
@@ -288,7 +268,6 @@ def parse_offer(markup, url, cookie):
         return
     images = get_img_url(str(html_parser.find(id="gallery")))
     contact_content = str(html_parser.find(class_="contact-box"))
-    contact_details = parse_contact_details(contact_content, cookie)
     date_details = str(html_parser.find(class_="ogl-info-wrap"))
     dates_id = parse_dates_and_id(date_details)
     description = parse_description(str(html_parser.find(class_="ogl-description")))
@@ -315,9 +294,7 @@ def parse_offer(markup, url, cookie):
         "available_from": get_available_from(offer_content),
         "furniture": get_furnished(offer_content),
         "additional: ": get_additional_information(offer_content),
-        "poster_name": contact_details["name"],
-        "phone_numbers": contact_details["phone"],
-        "mail": contact_details["mail"],
+        "poster_name": parse_poster_name(contact_content),
         "date_added": dates_id["added"],
         "date_updated": dates_id["updated"],
         "url": url,
@@ -339,8 +316,7 @@ def get_descriptions(parsed_urls):
         if url is None:
             continue
         response = get_content_for_url(url)
-        cookie = get_cookie_from(response)
-        current_offer = parse_offer(response.content, url, cookie)
+        current_offer = parse_offer(response.content, url)
         if current_offer is not None:
             descriptions.append(current_offer)
     return descriptions

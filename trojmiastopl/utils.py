@@ -112,57 +112,8 @@ def get_url(category, region=None, **filters):
         url += "s,{0}.html".format(region)
     return url
 
-USER_AGENTS = [
-    'Mozilla/5.0 (CrKey armv7l 1.5.16041) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.0 Safari/537.36',
-    'Mozilla/5.0 (Linux; U; Android 4.2.2; he-il; NEO-X5-116A Build/JDQ39) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30',
-    'Mozilla/5.0 (Linux; Android 4.2.2; AFTB Build/JDQ39) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.173 Mobile Safari/537.22',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9',
-]
 
-def get_random_user_agent():
-    return random.choice(USER_AGENTS)
-
-def obfuscator_request(contact_hash, cookie):
-    """ Sends request to http://ogloszenia.trojmiasto.pl/_ajax/obfuscator/?decode
-
-    :param contact_hash: Data hash needed to decode information
-    :type contact_hash: str
-    :return: Response returned by request
-    """
-    user_agent = get_random_user_agent()
-    log.info('user-agent: {0}'.format(user_agent))
-    response = requests.post(
-        OBFUSCATOR_URL,
-        data={
-            "hash": contact_hash,
-            "type": "ogloszenia"
-        },
-        headers={
-            "cookie": "{0}".format(cookie),
-            'User-Agent': user_agent
-        }
-    )
-    try:
-        response.raise_for_status()
-    except requests.HTTPError as e:
-        log.warning('Request for {0} failed. Error: {1}'.format(OBFUSCATOR_URL, e))
-        return None
-    return response
-
-
-def get_cookie_from(response):
-    """ Provides cookie for given response
-
-    :param response: Requests.response object
-    :return: Cookie information as string
-    :rtype: string
-    """
-    cookie = response.headers['Set-Cookie'].split(';')[0]
-    return cookie
-
-
-#@caching(key_func=key_sha1)
+@caching(key_func=key_sha1)
 def get_content_for_url(url):
     """ Connects with given url
 

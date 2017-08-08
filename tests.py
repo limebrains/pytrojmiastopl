@@ -132,18 +132,9 @@ def test_get_img_url(gallery_parser):
         assert "ogloszenia/foto" in img
 
 
-response = trojmiastopl.utils.get_content_for_url(OFFER_URL)
-cookie = trojmiastopl.utils.get_cookie_from(response)
-
-
-@pytest.mark.parametrize("content_hash", ["hsdhaA@$CAc3accearaw"])
-def test_obfuscator(content_hash):
-    assert trojmiastopl.utils.obfuscator_request(content_hash, cookie)
-
-
 @pytest.mark.skipif(sys.version_info < (3, 1), reason="requires Python3")
 def test_parse_offer(response_parser):
-    assert isinstance(trojmiastopl.offer.parse_offer(response_parser, OFFER_URL, cookie), dict)
+    assert isinstance(trojmiastopl.offer.parse_offer(response_parser, OFFER_URL), dict)
 
 
 def test_parse_flat_data(sidebar_parser):
