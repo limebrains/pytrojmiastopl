@@ -19,13 +19,6 @@ SEARCH_URL = "http://ogloszenia.trojmiasto.pl/nieruchomosci-mam-do-wynajecia/wi,
 OFFER_URL = "http://ogloszenia.trojmiasto.pl/nieruchomosci-mam-do-wynajecia/apartament-3-pokojowy-65-m-kw-centrum-wrzeszcza-ul-partyzantow-ogl60570207.html"
 
 
-@pytest.mark.parametrize("list1", [[2, [[3], [1]], [4, [0]]]])
-def test_flatten(list1):
-    result = trojmiastopl.utils.flatten(list1)
-    for element in result:
-        assert not isinstance(element, list)
-
-
 @pytest.mark.parametrize("to_decode", ["Mieszkanie", "Dom", "Biuro"])
 def test_decode(to_decode):
     assert trojmiastopl.utils.decode_type(to_decode) > 0
@@ -133,9 +126,9 @@ def test_get_img_url(gallery_parser):
         assert "ogloszenia/foto" in img
 
 
-@pytest.mark.skipif(sys.version_info < (3, 1), reason="requires Python3")
-def test_parse_offer(response_parser):
-    assert isinstance(trojmiastopl.offer.parse_offer(response_parser, OFFER_URL), dict)
+@pytest.mark.parametrize("offer_url", [OFFER_URL])
+def test_parse_offer(offer_url):
+    assert isinstance(trojmiastopl.offer.parse_offer(offer_url), dict)
 
 
 def test_parse_flat_data(sidebar_parser):

@@ -5,8 +5,9 @@ import logging
 from re import findall
 
 from bs4 import BeautifulSoup
+from scrapper_helpers.utils import flatten
 
-from trojmiastopl.utils import flatten, get_content_for_url, get_url
+from trojmiastopl.utils import get_content_for_url, get_url
 
 log = logging.getLogger(__file__)
 logging.basicConfig(level=logging.DEBUG)
