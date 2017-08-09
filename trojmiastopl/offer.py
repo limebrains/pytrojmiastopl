@@ -189,8 +189,8 @@ def parse_description(description_markup):
     """
     html_parser = BeautifulSoup(description_markup, "html.parser").text
     # \xa0 means no-break space symbol
-    return html_parser.split("$(function")[0].replace("  ", "").replace("\n", " ").replace("\r", "").replace(u'\xa0',
-                                                                                                             u' ')
+    return html_parser.split("$(function")[0].replace("  ", "").replace("\n", " ").replace("\r", "")\
+        .replace(u'\xa0', u' ').strip()
 
 
 def get_furnished(offer_markup):
@@ -299,7 +299,7 @@ def parse_offer(markup, url):
         "built_date": flat_data["rok_budowy"],
         "available_from": get_available_from(offer_content),
         "furniture": get_furnished(offer_content),
-        "additional: ": get_additional_information(offer_content),
+        "additional": get_additional_information(offer_content),
         "poster_name": parse_poster_name(contact_content),
         "date_added": dates_id["added"],
         "date_updated": dates_id["updated"],
