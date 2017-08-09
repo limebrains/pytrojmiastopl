@@ -115,8 +115,11 @@ def get_surface(offer_markup):
     :except: When there is no offer surface it will return None
     """
     html_parser = BeautifulSoup(offer_markup, "html.parser")
-    surface = html_parser.sup.parent.previous_sibling
-    return float(surface.replace("m2", "").strip().replace(",", ".").replace(" ", ""))
+    try:
+        surface = html_parser.sup.parent.previous_sibling
+        return float(surface.replace("m2", "").strip().replace(",", ".").replace(" ", ""))
+    except AttributeError:
+        return
 
 
 def get_apartment_type(offer_markup):
@@ -292,7 +295,7 @@ def parse_offer(markup, url):
         "currency": "PLN",
         "deposit": flat_data["kaucja"],
         "surface": surface,
-        "price/surface": round(flat_data["cena"] / surface),
+        "price/surface": round(flat_data["cena"] / surface) if surface else None,
         "floor": flat_data["pietro"],
         "floor_count": flat_data["l_pieter"],
         "rooms": flat_data["l_pokoi"],
