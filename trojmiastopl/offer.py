@@ -21,11 +21,16 @@ def get_title(offer_markup):
 
     :param offer_markup: Class "title-wrap" from offer page markup
     :type offer_markup: str
-    :return: Title of offer
-    :rtype: str
+    :return: Title of offer or None if there is no title
+    :rtype: str, None
+
+    :except: Returns None when couldn't find title of offer page.
     """
     html_parser = BeautifulSoup(offer_markup, "html.parser")
-    return html_parser.find(id="ogl-title").text.strip()
+    try:
+        return html_parser.find(id="ogl-title").text.strip()
+    except AttributeError:
+        return
 
 
 def get_img_url(offer_markup):
@@ -109,14 +114,17 @@ def get_surface(offer_markup):
 
     :param offer_markup: Class "sidebar" from offer page markup
     :type offer_markup: str
-    :return: Surface
-    :rtype: float
+    :return: Surface or None if there is no surface
+    :rtype: float, None
 
     :except: When there is no offer surface it will return None
     """
     html_parser = BeautifulSoup(offer_markup, "html.parser")
-    surface = html_parser.sup.parent.previous_sibling
-    return float(surface.replace("m2", "").strip().replace(",", ".").replace(" ", ""))
+    try:
+        surface = html_parser.sup.parent.previous_sibling
+        return float(surface.replace("m2", "").strip().replace(",", ".").replace(" ", ""))
+    except AttributeError:
+        return
 
 
 def get_apartment_type(offer_markup):
@@ -136,8 +144,8 @@ def get_available_from(offer_markup):
 
     :param offer_markup: Class "sidebar" from offer page markup
     :type offer_markup: str
-    :return: Available from
-    :rtype: str
+    :return: Available from or None if there is no information
+    :rtype: str, None
     """
     html_parser = BeautifulSoup(offer_markup, "html.parser")
     try:
@@ -189,8 +197,8 @@ def parse_description(description_markup):
     """
     html_parser = BeautifulSoup(description_markup, "html.parser").text
     # \xa0 means no-break space symbol
-    return html_parser.split("$(function")[0].replace("  ", "").replace("\n", " ").replace("\r", "").replace(u'\xa0',
-                                                                                                             u' ')
+    return html_parser.split("$(function")[0].replace("  ", "").replace("\n", " ").replace("\r", "") \
+        .replace(u'\xa0', u' ').strip()
 
 
 def get_furnished(offer_markup):
@@ -251,12 +259,10 @@ def parse_poster_name(contact_markup):
     return poster_name
 
 
-def parse_offer(markup, url):
-    """ Parses data from offer page markup
+def parse_offer(url):
+    """ Parses data from offer page url
 
-    :param markup: Offer page markup
     :param url: Url of current offer page
-    :type markup: str
     :type url: str
     :return: Dictionary with all offer details
     :rtype: dict
@@ -264,12 +270,12 @@ def parse_offer(markup, url):
     :except: If there is no offer title anymore - offer got deleted.
     """
     log.debug(url)
-    html_parser = BeautifulSoup(markup, "html.parser")
+    response = get_content_for_url(url)
+    html_parser = BeautifulSoup(response.content, "html.parser")
     offer_content = str(html_parser.find(class_="title-wrap"))
-    try:
-        title = get_title(offer_content)
-    except AttributeError as e:
-        log.warning("Offer {0} is not available anymore. Error: {1}".format(url, e))
+    title = get_title(offer_content)
+    if title is None:
+        log.warning("Offer {0} is not available anymore.".format(url))
         return
     images = get_img_url(str(html_parser.find(id="gallery")))
     contact_content = str(html_parser.find(class_="contact-box"))
@@ -292,14 +298,14 @@ def parse_offer(markup, url):
         "currency": "PLN",
         "deposit": flat_data["kaucja"],
         "surface": surface,
-        "price/surface": round(flat_data["cena"] / surface),
+        "price/surface": round(flat_data["cena"] / surface) if surface else None,
         "floor": flat_data["pietro"],
         "floor_count": flat_data["l_pieter"],
         "rooms": flat_data["l_pokoi"],
         "built_date": flat_data["rok_budowy"],
         "available_from": get_available_from(offer_content),
         "furniture": get_furnished(offer_content),
-        "additional: ": get_additional_information(offer_content),
+        "additional": get_additional_information(offer_content),
         "poster_name": parse_poster_name(contact_content),
         "date_added": dates_id["added"],
         "date_updated": dates_id["updated"],
@@ -321,8 +327,7 @@ def get_descriptions(parsed_urls):
     for url in parsed_urls:
         if url is None:
             continue
-        response = get_content_for_url(url)
-        current_offer = parse_offer(response.content, url)
+        current_offer = parse_offer(url)
         if current_offer is not None:
             descriptions.append(current_offer)
     return descriptions
