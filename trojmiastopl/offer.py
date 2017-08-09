@@ -254,12 +254,10 @@ def parse_poster_name(contact_markup):
     return poster_name
 
 
-def parse_offer(markup, url):
-    """ Parses data from offer page markup
+def parse_offer(url):
+    """ Parses data from offer page url
 
-    :param markup: Offer page markup
     :param url: Url of current offer page
-    :type markup: str
     :type url: str
     :return: Dictionary with all offer details
     :rtype: dict
@@ -267,7 +265,8 @@ def parse_offer(markup, url):
     :except: If there is no offer title anymore - offer got deleted.
     """
     log.debug(url)
-    html_parser = BeautifulSoup(markup, "html.parser")
+    response = get_content_for_url(url)
+    html_parser = BeautifulSoup(response.content, "html.parser")
     offer_content = str(html_parser.find(class_="title-wrap"))
     try:
         title = get_title(offer_content)
@@ -324,8 +323,7 @@ def get_descriptions(parsed_urls):
     for url in parsed_urls:
         if url is None:
             continue
-        response = get_content_for_url(url)
-        current_offer = parse_offer(response.content, url)
+        current_offer = parse_offer(url)
         if current_offer is not None:
             descriptions.append(current_offer)
     return descriptions
