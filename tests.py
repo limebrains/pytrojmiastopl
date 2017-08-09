@@ -149,7 +149,7 @@ def test_get_descriptions(urls):
     ("nieruchomosci-mam-do-wynajecia", "Gdansk", {"data_wprow": "1d", "cdata_wprow": (300, None)}),
 ])
 def test_get_page_count_for_filters(category, region, filters):
-    assert trojmiastopl.category.get_page_count_for_filters(category, region, **filters) <= 2
+    assert trojmiastopl.category.get_page_count_for_filters(category, region, **filters) <= 3
 
 
 @pytest.mark.parametrize("category,region,filters", [
