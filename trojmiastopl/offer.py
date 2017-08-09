@@ -21,11 +21,16 @@ def get_title(offer_markup):
 
     :param offer_markup: Class "title-wrap" from offer page markup
     :type offer_markup: str
-    :return: Title of offer
-    :rtype: str
+    :return: Title of offer or None if there is no title
+    :rtype: str, None
+
+    :except: Returns None when couldn't find title of offer page.
     """
     html_parser = BeautifulSoup(offer_markup, "html.parser")
-    return html_parser.find(id="ogl-title").text.strip()
+    try:
+        return html_parser.find(id="ogl-title").text.strip()
+    except AttributeError:
+        return
 
 
 def get_img_url(offer_markup):
@@ -109,8 +114,8 @@ def get_surface(offer_markup):
 
     :param offer_markup: Class "sidebar" from offer page markup
     :type offer_markup: str
-    :return: Surface
-    :rtype: float
+    :return: Surface or None if there is no surface
+    :rtype: float, None
 
     :except: When there is no offer surface it will return None
     """
@@ -139,8 +144,8 @@ def get_available_from(offer_markup):
 
     :param offer_markup: Class "sidebar" from offer page markup
     :type offer_markup: str
-    :return: Available from
-    :rtype: str
+    :return: Available from or None if there is no information
+    :rtype: str, None
     """
     html_parser = BeautifulSoup(offer_markup, "html.parser")
     try:
@@ -192,7 +197,7 @@ def parse_description(description_markup):
     """
     html_parser = BeautifulSoup(description_markup, "html.parser").text
     # \xa0 means no-break space symbol
-    return html_parser.split("$(function")[0].replace("  ", "").replace("\n", " ").replace("\r", "")\
+    return html_parser.split("$(function")[0].replace("  ", "").replace("\n", " ").replace("\r", "") \
         .replace(u'\xa0', u' ').strip()
 
 
@@ -268,10 +273,9 @@ def parse_offer(url):
     response = get_content_for_url(url)
     html_parser = BeautifulSoup(response.content, "html.parser")
     offer_content = str(html_parser.find(class_="title-wrap"))
-    try:
-        title = get_title(offer_content)
-    except AttributeError as e:
-        log.warning("Offer {0} is not available anymore. Error: {1}".format(url, e))
+    title = get_title(offer_content)
+    if title is None:
+        log.warning("Offer {0} is not available anymore.".format(url))
         return
     images = get_img_url(str(html_parser.find(id="gallery")))
     contact_content = str(html_parser.find(class_="contact-box"))
