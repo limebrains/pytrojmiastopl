@@ -3,6 +3,7 @@
 
 import logging
 from re import findall
+import requests
 
 from bs4 import BeautifulSoup
 from scrapper_helpers.utils import flatten
@@ -152,8 +153,8 @@ def get_offers_for_page(category, region, page, **filters):
     """
     url = get_url(category, region, **filters) + "?strona={0}".format(page)
     response = get_content_for_url(url)
-    if response.status_code > 300:
-        return
+    if response is None:
+        raise requests.HTTPError
     log.info("Loaded page {0} of offers".format(page))
     offers = parse_available_offers(response.content)
     log.info("Loaded {0} offers".format(str(len(offers))))
