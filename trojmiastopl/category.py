@@ -152,6 +152,8 @@ def get_offers_for_page(category, region, page, **filters):
     :rtype: list
     """
     url = get_url(category, region, **filters) + "?strona={0}".format(page)
+    if url is None:
+        raise requests.HTTPError
     response = get_content_for_url(url)
     if response is None:
         raise requests.HTTPError

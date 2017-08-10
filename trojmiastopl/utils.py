@@ -64,6 +64,8 @@ def get_url_for_filters(payload):
     :rtype: str
     """
     response = requests.post(SEARCH_URL, payload, headers={'User-Agent': get_random_user_agent()})
+    if response is None:
+        raise requests.HTTPError
     html_parser = BeautifulSoup(response.content, "html.parser")
     url = html_parser.find(class_="nice-select-tsi").find("option").next_sibling.next_sibling.attrs["value"]
     return url
@@ -106,6 +108,8 @@ def get_url(category, region=None, **filters):
                     continue
             payload += (k, v),
         url = get_url_for_filters(payload)
+        if url is None:
+            raise requests.HTTPError
     elif region is not None:
         url += "s,{0}.html".format(region)
     return url
