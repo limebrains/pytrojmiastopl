@@ -3,6 +3,7 @@
 
 import logging
 import re
+import requests
 
 from bs4 import BeautifulSoup
 
@@ -271,6 +272,8 @@ def parse_offer(url):
     """
     log.debug(url)
     response = get_content_for_url(url)
+    if response.status_code == 429:
+        raise requests.HTTPError
     html_parser = BeautifulSoup(response.content, "html.parser")
     offer_content = str(html_parser.find(class_="title-wrap"))
     title = get_title(offer_content)
