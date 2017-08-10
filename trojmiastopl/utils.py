@@ -67,9 +67,10 @@ def get_url_for_filters(payload):
     if response is None:
         raise requests.HTTPError
     html_parser = BeautifulSoup(response.content, "html.parser")
-    if html_parser is None:
+    try:
+        url = html_parser.find(class_="nice-select-tsi").find("option").next_sibling.next_sibling.attrs["value"]
+    except AttributeError:
         raise requests.HTTPError
-    url = html_parser.find(class_="nice-select-tsi").find("option").next_sibling.next_sibling.attrs["value"]
     return url
 
 
