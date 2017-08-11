@@ -151,11 +151,11 @@ def get_offers_for_page(category, region, page, **filters):
     :return: List of all offers for given page and parameters
     :rtype: list
     """
-    url = get_url(category, region, **filters) + "?strona={0}".format(page)
-    if url is None:
-        raise requests.HTTPError
-    response = get_content_for_url(url)
-    if response is None:
+    try:
+        url = get_url(category, region, **filters) + "?strona={0}".format(page)
+        response = get_content_for_url(url)
+    except requests.HTTPError as e:
+        log.warning('Request for {0} failed. Error: {1}'.format(url, e))
         raise requests.HTTPError
     log.info("Loaded page {0} of offers".format(page))
     offers = parse_available_offers(response.content)
