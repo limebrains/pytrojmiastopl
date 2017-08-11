@@ -3,8 +3,8 @@
 
 import logging
 import re
-import requests
 
+import requests
 from bs4 import BeautifulSoup
 
 from trojmiastopl.utils import get_content_for_url

@@ -3,8 +3,8 @@
 
 import logging
 from re import findall
-import requests
 
+import requests
 from bs4 import BeautifulSoup
 from scrapper_helpers.utils import flatten
 

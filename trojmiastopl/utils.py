@@ -107,7 +107,7 @@ def get_url(category, region=None, **filters):
             payload += (k, v),
         try:
             url = get_url_for_filters(payload)
-        except AttributeError:
+        except (AttributeError, requests.HTTPError):
             raise requests.HTTPError
     elif region is not None:
         url += "s,{0}.html".format(region)
