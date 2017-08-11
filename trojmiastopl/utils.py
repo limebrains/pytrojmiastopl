@@ -101,11 +101,14 @@ def get_url(category, region=None, **filters):
                 v = decode_type(v)
                 k = "rodzaj_nieruchomosci"
             elif "data_wprow" == k:
-                available = ["1d", "3d", "1w", "3w"]
+                available = ["1d", "3d", "1w", "2w"]
                 if v not in available:
                     continue
             payload += (k, v),
-        url = get_url_for_filters(payload)
+        try:
+            url = get_url_for_filters(payload)
+        except (AttributeError, requests.HTTPError):
+            raise requests.HTTPError
     elif region is not None:
         url += "s,{0}.html".format(region)
     return url
@@ -122,9 +125,5 @@ def get_content_for_url(url):
     :return: Response for requested url
     """
     response = requests.get(url, headers={'User-Agent': get_random_user_agent()})
-    try:
-        response.raise_for_status()
-    except requests.HTTPError as e:
-        log.warning('Request for {0} failed. Error: {1}'.format(url, e))
-        return None
+    response.raise_for_status()
     return response

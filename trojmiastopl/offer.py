@@ -4,6 +4,7 @@
 import logging
 import re
 
+import requests
 from bs4 import BeautifulSoup
 
 from trojmiastopl.utils import get_content_for_url
@@ -271,6 +272,8 @@ def parse_offer(url):
     """
     log.debug(url)
     response = get_content_for_url(url)
+    if response is None:
+        raise requests.HTTPError
     html_parser = BeautifulSoup(response.content, "html.parser")
     offer_content = str(html_parser.find(class_="title-wrap"))
     title = get_title(offer_content)
