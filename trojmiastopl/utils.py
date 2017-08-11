@@ -106,7 +106,7 @@ def get_url(category, region=None, **filters):
                 v = decode_type(v)
                 k = "rodzaj_nieruchomosci"
             elif "data_wprow" == k:
-                available = ["1d", "3d", "1w", "3w"]
+                available = ["1d", "3d", "1w", "2w"]
                 if v not in available:
                     continue
             payload += (k, v),
