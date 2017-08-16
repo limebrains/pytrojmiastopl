@@ -316,21 +316,3 @@ def parse_offer(url):
         "description": description,
         "images": images
     }
-
-
-def get_descriptions(parsed_urls):
-    """ Parses details of offers in category
-
-    :param parsed_urls: List of offers urls
-    :type parsed_urls: list
-    :return: List of details of offers
-    :rtype: list
-    """
-    descriptions = []
-    for url in parsed_urls:
-        if url is None:
-            continue
-        current_offer = parse_offer(url)
-        if current_offer is not None:
-            descriptions.append(current_offer)
-    return descriptions

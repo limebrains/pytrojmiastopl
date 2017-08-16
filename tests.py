@@ -139,12 +139,6 @@ def test_parse_flat_data(sidebar_parser):
     assert test["l_pieter"] == 4
 
 
-@pytest.mark.skipif(sys.version_info < (3, 1), reason="requires Python3")
-@pytest.mark.parametrize("urls", [parsed_urls])
-def test_get_descriptions(urls):
-    assert isinstance(trojmiastopl.offer.get_descriptions(urls), list)
-
-
 @pytest.mark.parametrize("category,region,filters", [
     ("nieruchomosci-mam-do-wynajecia", "Gdansk", {"data_wprow": "1d", "cdata_wprow": (300, None)}),
 ])
