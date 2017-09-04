@@ -3,7 +3,6 @@
 
 import logging
 
-from trojmiastopl import BASE_URL
 from trojmiastopl.category import get_category
 from trojmiastopl.offer import parse_offer
 
@@ -16,6 +15,6 @@ if __name__ == '__main__':
         "cena[]": (2000, None)
     }
     parsed_urls = get_category("nieruchomosci-mam-do-wynajecia", "Gdańsk", **search_filters)[:3]
-    for element in (parse_offer(url) for url in parsed_urls if url and BASE_URL in url):
+    for element in (parse_offer(url) for url in parsed_urls if url):
         print()
         print(element)

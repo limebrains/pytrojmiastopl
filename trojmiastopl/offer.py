@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import datetime as dt
 import logging
 import re
 
@@ -89,6 +90,47 @@ def parse_region(offer_markup):
     return output
 
 
+def get_month_num_for_string(value):
+    """ Map for polish month names
+
+    :param value: Month value
+    :type value: str
+    :return: Month number
+    :rtype: int
+    """
+    value = value.lower()[:3]
+    return {
+        'sty': 1,
+        'lut': 2,
+        'mar': 3,
+        'kwi': 4,
+        'maj': 5,
+        'cze': 6,
+        'lip': 7,
+        'sie': 8,
+        'wrz': 9,
+        'paź': 10,
+        'lis': 11,
+        'gru': 12,
+    }.get(value)
+
+
+def parse_date_to_timestamp(date):
+    """ Parses string date to unix timestamp
+
+    :param date: Date
+    :type date: str
+    :return: Unix timestamp
+    :rtype: int
+    """
+    date_parts = date.split(' ')
+    month = get_month_num_for_string(date_parts[1])
+    year = int(date_parts[2])
+    day = int(date_parts[0])
+    date_added = dt.datetime(year=year, day=day, month=month)
+    return int((date_added - dt.datetime(1970, 1, 1)).total_seconds())
+
+
 def parse_dates_and_id(offer_markup):
     """ Searches for date of creating and date of last update of an offer. Additionally parses offer id number.
 
@@ -104,9 +146,9 @@ def parse_dates_and_id(offer_markup):
         if "numer" in detail.text:
             output["id"] = detail.span.text
         elif "wprowadzenia" in detail.text:
-            output["added"] = detail.span.text
+            output["added"] = parse_date_to_timestamp(detail.span.text)
         elif "aktualizacja" in detail.text:
-            output["updated"] = detail.span.text
+            output["updated"] = parse_date_to_timestamp(detail.span.text)
     return output
 
 
@@ -312,6 +354,9 @@ def parse_offer(url):
         "poster_name": parse_poster_name(contact_content),
         "date_added": dates_id["added"],
         "date_updated": dates_id["updated"],
+        "date_added_readable": dt.datetime.fromtimestamp(dates_id["added"]).isoformat(),
+        "date_updated_readable": dt.datetime.fromtimestamp(dates_id["updated"]).isoformat()
+        if dates_id["updated"] else None,
         "url": url,
         "description": description,
         "images": images

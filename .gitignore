@@ -107,3 +107,4 @@ docs/make.bat
 test.py/bin/
 test.py/include/
 test.py/pip-selfcheck.json
+.DS_Store
