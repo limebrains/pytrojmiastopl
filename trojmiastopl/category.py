@@ -155,7 +155,7 @@ def get_offers_for_page(category, region, page, **filters):
         url = get_url(category, region, **filters) + "?strona={0}".format(page)
         response = get_content_for_url(url)
     except requests.HTTPError as e:
-        log.warning('Request for {0} failed. Error: {1}'.format(url, e))
+        log.warning('Request failed. Error: {0}'.format(e))
         raise requests.HTTPError
     log.info("Loaded page {0} of offers".format(page))
     offers = parse_available_offers(response.content)

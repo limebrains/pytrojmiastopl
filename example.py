@@ -4,7 +4,7 @@
 import logging
 
 from trojmiastopl.category import get_category
-from trojmiastopl.offer import get_descriptions
+from trojmiastopl.offer import parse_offer
 
 log = logging.getLogger(__file__)
 
@@ -15,7 +15,6 @@ if __name__ == '__main__':
         "cena[]": (2000, None)
     }
     parsed_urls = get_category("nieruchomosci-mam-do-wynajecia", "Gdańsk", **search_filters)[:3]
-    descriptions = get_descriptions(parsed_urls)
-    for element in descriptions:
+    for element in (parse_offer(url) for url in parsed_urls if url):
         print()
         print(element)
